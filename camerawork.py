@@ -1,60 +1,224 @@
 from picamera2 import Picamera2, Preview
-import time
-import os
-import datetime
+from time import sleep
+from os import system
+from datetime import datetime
+from numpy import empty, shape, array2string
+from numpy import sum as npsum
+import matplotlib.pyplot as plt
 
-#os.chdir('/home/optics/Pictures')
 
-# Takes jpg and raw
-
-filename = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.jpg')
-rawfilename = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.raw')
+# Takes jpg and raw picture --------------------------------------------
+filename = datetime.now().strftime('%Y-%m-%d %H:%M:%S.jpg')
+rawfilename = datetime.now().strftime('%Y-%m-%d %H:%M:%S.raw')
 
 picam2 = Picamera2()
 
-config = picam2.create_still_configuration(main={'size':picam2.sensor_resolution},raw={'format':'SRGGB10'})
+config = picam2.create_still_configuration(main={'size':picam2.sensor_resolution},raw={'format':'SRGGB10'})#'size':picam2.sensor_resolution
 picam2.configure(config)
 
+
+
 picam2.start()
-time.sleep(2)
+sleep(2)
 
 metadata = picam2.capture_file(filename)
 rawdata = picam2.capture_array('raw')
 
+# numpy array of the image (3 dimensions) ------------------------------
+array=picam2.capture_array("main")
+datafile=open(f"{rawfilename}.txt","w")
+w=shape(array)[1]#width
+h=shape(array)[0]#height
+channels=shape(array)[2]# it is rgb 3 numbers per pixel
+print(shape(array))
+pixels = npsum(array,2)
+
+# write data to file, starting with pixel dimensions
+datafile.write(f"dimensions {w},{h}")
+
 rawdata.tofile(rawfilename)
 picam2.stop()
 
-
-#saves as jpg, has some extra from raw attempts \/
-'''
-filename = 'test.jpg' #datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S.jpg')
-
-picam2 = Picamera2()
-picam2.start_preview(Preview.QTGL)
-
-camera_config = picam2.create_preview_configuration(raw={'size':picam2.sensor_resolution}) #() was blank
-print(camera_config)
-picam2.configure(camera_config)
-
-picam2.start()
-time.sleep(2) #how long after starting before take pic
-
-picam2.capture_file(filename)
-'''
-
-'''
-picam2 = Picamera2()
-camera = Picamera2()
-config = camera.create_still_configuration(main={'size':picam2.sensor_resolution},raw = {},display = None)
-camera.configure(config)
-#camera.set_controls({'ExposureTime':120, 'AnalogueGain':1,'ColourGains':(1.8, 1.8)}) # not sure if needed - for future ref
-camera.start()
-
-r = camera.capture_request(config)
-r.save('test.dng')
-print(r.get_metadata)
-r.release()
-'''
+# Plot image using pyplot, gray color map
+plt.imshow(pixels, cmap="gray")
+plt.show()
 
 print('done')
-#/home/optics/Pictures
+
+'''
+##############################################################################
+
+# read_image rotate and process.py
+
+##############################################################################
+
+# This script reads in an image from a spectrometer and rotates it
+
+#   and someday will process it
+
+#
+
+##############################################################################
+
+# Author R. Todd Lines
+
+# Last Modified:  2024-11-06
+
+##############################################################################
+
+# Import libraries
+
+import numpy as np
+
+import matplotlib.pyplot as plt
+
+from PIL import Image
+
+ 
+
+ 
+
+# Read and process image. 
+
+image =Image.open("./solar_spectrum.jpg")
+
+ 
+
+#The image is crooked, so streighten it
+
+image = image.rotate(-2.09 )
+
+ 
+
+ 
+
+# try to convert the image to an array
+
+im_array=np.array(image)
+
+# We are only going to deal with the images so average over the three colors
+
+#  This effectively makes a greyscale image
+
+grey_array = im_array[:, :, :3].mean(axis=2)  # Convert to grayscale
+
+ 
+
+ 
+
+# find the size of the array
+
+arr_side_length=np.shape(im_array)
+
+# short vertice dimension first, longer horizontal dimension second
+
+y_max=arr_side_length[0]
+
+x_max=arr_side_length[1]
+
+print("image shape in pixels: ", arr_side_length[0], "columns",arr_side_length[1],"rows",arr_side_length[2], "colors")
+
+#print(x_max,y_max)
+
+ 
+
+# Pick a line to plot somewhere in the middle
+
+#line_to_plot=int(arr_side_length[0]/2)
+
+ 
+
+# Make numbers for an x-axis that just go from zero to the side length
+
+x=np.arange(0,arr_side_length[1],1)
+
+y=np.arange(0,arr_side_length[0],1)
+
+ 
+
+# Now split out one line of the image, say, the 500th row
+
+#y=grey_array[line_to_plot]
+
+ 
+
+#Find the limits of the data
+
+y_ave=np.zeros(y_max)
+
+reduced_data=np.empty([1,x_max])
+
+j=0
+
+for i in range(y_max):
+
+    # np array indexing is [row, column]
+
+    y_ave[i]=np.average(grey_array[i,:])
+
+    if y_ave[i]>5:
+
+        j=j+1
+
+        reduced_data  = np.r_[reduced_data,[ grey_array[i,:]]]
+
+        #reduced_data = np.append(reduced_data, grey_array[i,:], axis=0)
+
+ 
+
+print("number of rows with data", j)
+
+ 
+
+   
+
+# Since we believe we streightened our image, average the columns so we get
+
+#  one line of data that shows our image.
+
+spec_ave=grey_array[:, :].mean(axis=0) 
+
+ 
+
+ 
+
+# Plot the image
+
+plt.subplot(221)
+
+plt.imshow(image)
+
+plt.axis("off")
+
+ 
+
+#plot that line of data
+
+plt.subplot(222)
+
+plt.plot(x,spec_ave,linewidth=0.2)
+
+plt.axis("off")
+
+ 
+
+#plot that which rows have data
+
+plt.subplot(223)
+
+plt.plot(y,y_ave,linewidth=0.2)
+
+plt.axis("off")
+
+ 
+
+# Plot the  reduced image
+
+plt.subplot(224)
+
+plt.imshow(reduced_data)
+
+plt.axis("off")
+
+plt.show()
+'''
