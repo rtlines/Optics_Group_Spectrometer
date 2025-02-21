@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 filename = datetime.now().strftime('%Y-%m-%d %H:%M:%S.jpg')
 rawfilename = datetime.now().strftime('%Y-%m-%d %H:%M:%S.raw')
 
-picam2 = Picamera2()
+picam2 = Picamera2() 
 
 config = picam2.create_still_configuration(main={'size':picam2.sensor_resolution},raw={'format':'SRGGB10'})#'size':picam2.sensor_resolution
 picam2.configure(config)
@@ -21,19 +21,20 @@ picam2.configure(config)
 picam2.start()
 sleep(2)
 
+# save to 2 file types: jpeg, raw
 metadata = picam2.capture_file(filename)
 rawdata = picam2.capture_array('raw')
 
 # numpy array of the image (3 dimensions) ------------------------------
 array=picam2.capture_array("main")
-datafile=open(f"{rawfilename}.txt","w")
+datafile=open(f"{rawfilename}.txt","w") # create a file (from the raw img we just took)
 w=shape(array)[1]#width
 h=shape(array)[0]#height
 channels=shape(array)[2]# it is rgb 3 numbers per pixel
 print(shape(array))
-pixels = npsum(array,2)
+pixels = npsum(array,2)# turns into black and white from summing rgb values
 
-# write data to file, starting with pixel dimensions
+# write pixel data to file, starting with pixel dimensions
 datafile.write(f"dimensions {w},{h}")
 
 rawdata.tofile(rawfilename)
@@ -44,6 +45,8 @@ plt.imshow(pixels, cmap="gray")
 plt.show()
 
 print('done')
+
+# need to add section to sum columns to a single row, calibrate with color to find pos, find ang, etc. 
 
 '''
 ##############################################################################
