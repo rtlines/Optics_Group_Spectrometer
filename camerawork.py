@@ -2,21 +2,21 @@ from picamera2 import Picamera2, Preview
 from time import sleep
 from os import system
 from datetime import datetime
-from numpy import empty, shape, array2string
+from numpy import empty, shape, array2string, arange  # do we even use array to string?
 from numpy import sum as npsum
 import matplotlib.pyplot as plt
 
 
-# Takes jpg and raw picture --------------------------------------------
-filename = datetime.now().strftime('%Y-%m-%d %H:%M:%S.jpg')
-rawfilename = datetime.now().strftime('%Y-%m-%d %H:%M:%S.raw')
+# Takes jpg and raw picture #############################################################################
+date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+filename = f'{date}_Picture.jpg'
+rawfilename = f'{date}_raw_file.raw'
+colfilename = f'{date}_Intensity_Graph.png'
 
 picam2 = Picamera2() 
 
 config = picam2.create_still_configuration(main={'size':picam2.sensor_resolution},raw={'format':'SRGGB10'})#'size':picam2.sensor_resolution
 picam2.configure(config)
-
-
 
 picam2.start()
 sleep(2)
@@ -25,7 +25,7 @@ sleep(2)
 metadata = picam2.capture_file(filename)
 rawdata = picam2.capture_array('raw')
 
-# numpy array of the image (3 dimensions) ------------------------------
+# numpy array of the image (3 dimensions) ##############################################################
 array=picam2.capture_array("main")
 datafile=open(f"{rawfilename}.txt","w") # create a file (from the raw img we just took)
 w=shape(array)[1]#width
@@ -44,9 +44,22 @@ picam2.stop()
 plt.imshow(pixels, cmap="gray")
 plt.show()
 
+
+# attempt to sum columns to one row ###################################################
+# pixels is the array with summed rgb values
+
+# summing the columns
+col_sum = npsum(pixels, axis=0)
+
+# graphing the summed columns
+plt.plot(arange(len(col_sum)),col_sum,color='xkcd:russet')
+plt.title('Summed brightness across x-axis')
+plt.savefig(colfilename)
+plt.show()
+
 print('done')
 
-# need to add section to sum columns to a single row, calibrate with color to find pos, find ang, etc. 
+#calibrate with color to find pos, find ang, etc. 
 
 '''
 ##############################################################################
