@@ -51,7 +51,7 @@ plt.show()
 # summing the columns
 # adjusting column heights (chopping off the messy top and bottom)
 
-t = 8 # (100/n)% how far to cut off?
+t = 4 # (100/n)% how far to cut off?
 b = 4
 num_o_rows = pixels.shape[0] # finding out how many rows are in the array so I can
                              # chop off however much I need to
