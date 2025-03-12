@@ -45,17 +45,33 @@ plt.imshow(pixels, cmap="gray")
 plt.show()
 
 
-# attempt to sum columns to one row ###################################################
+# sum columns to one row ###################################################
 # pixels is the array with summed rgb values
 
 # summing the columns
-col_sum = npsum(pixels, axis=0)
+# adjusting column heights (chopping off the messy top and bottom)
+
+t = 8 # (100/n)% how far to cut off?
+b = 4
+num_o_rows = pixels.shape[0] # finding out how many rows are in the array so I can
+                             # chop off however much I need to
+start_row = num_o_rows // t  # how many rows / n, rounded down to nearest whole num
+                             # the top has been nice so far, so moving crop upwards instead of around center
+                             # this cuts off top about (1/n)*100%
+end_row = num_o_rows - (num_o_rows // b)  # cuts off bottom (1/n)*100%
+                             # need to adjust when stuff stops moving around
+mid_pixels = pixels[start_row:end_row,:] # grabs just what's between start and end row
+
+col_sum = npsum(mid_pixels, axis=0)
 
 # graphing the summed columns
 plt.plot(arange(len(col_sum)),col_sum,color='xkcd:russet')
 plt.title('Summed brightness across x-axis')
 plt.savefig(colfilename)
 plt.show()
+
+# save cropped image
+plt.imsave(f'{date}_Cropped_Picture.jpg', mid_pixels, cmap = 'gray')
 
 print('done')
 
