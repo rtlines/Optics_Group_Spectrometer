@@ -6,12 +6,12 @@ from numpy import empty, shape, array2string, arange  # do we even use array to 
 from numpy import sum as npsum
 import matplotlib.pyplot as plt
 
-
+saveName=input("Save to: ")
 # Takes jpg and raw picture #############################################################################
 date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-filename = f'{date}_Picture.jpg'
-rawfilename = f'{date}_raw_file.raw'
-colfilename = f'{date}_Intensity_Graph.png'
+filename = f'{date}_{saveName}_Picture.jpg'
+#rawfilename = f'{date}_raw_file.raw'
+colfilename = f'{date}_{saveName}_Intensity_Graph.png'
 
 picam2 = Picamera2() 
 
@@ -27,7 +27,7 @@ rawdata = picam2.capture_array('raw')
 
 # numpy array of the image (3 dimensions) ##############################################################
 array=picam2.capture_array("main")
-datafile=open(f"{rawfilename}.txt","w") # create a file (from the raw img we just took)
+#datafile=open(f"{rawfilename}.txt","w") # create a file (from the raw img we just took)
 w=shape(array)[1]#width
 h=shape(array)[0]#height
 channels=shape(array)[2]# it is rgb 3 numbers per pixel
@@ -35,9 +35,9 @@ print(shape(array))
 pixels = npsum(array,2)# turns into black and white from summing rgb values
 
 # write pixel data to file, starting with pixel dimensions
-datafile.write(f"dimensions {w},{h}")
+#datafile.write(f"dimensions {w},{h}")
 
-rawdata.tofile(rawfilename)
+#rawdata.tofile(rawfilename)
 picam2.stop()
 
 # Plot image using pyplot, gray color map
@@ -71,7 +71,7 @@ plt.savefig(colfilename)
 plt.show()
 
 # save cropped image
-plt.imsave(f'{date}_Cropped_Picture.jpg', mid_pixels, cmap = 'gray')
+plt.imsave(f'{date}_{saveName}_Cropped_Picture.jpg', mid_pixels, cmap = 'gray')
 
 print('done')
 
