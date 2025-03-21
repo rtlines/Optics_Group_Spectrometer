@@ -2,11 +2,11 @@ from picamera2 import Picamera2, Preview
 from time import sleep
 from os import system
 from datetime import datetime
-from numpy import empty, shape, array2string, arange  # do we even use array to string?
+from numpy import empty, shape, arange
 from numpy import sum as npsum
 import matplotlib.pyplot as plt
 
-saveName=input("Save to: ")
+saveName=input("Name of spectrum: ")
 # Takes jpg and raw picture #############################################################################
 date = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 filename = f'{date}_{saveName}_Picture.jpg'
@@ -40,10 +40,6 @@ pixels = npsum(array,2)# turns into black and white from summing rgb values
 #rawdata.tofile(rawfilename)
 picam2.stop()
 
-# Plot image using pyplot, gray color map
-plt.imshow(pixels, cmap="gray")
-plt.show()
-
 
 # sum columns to one row ###################################################
 # pixels is the array with summed rgb values
@@ -64,14 +60,19 @@ mid_pixels = pixels[start_row:end_row,:] # grabs just what's between start and e
 
 col_sum = npsum(mid_pixels, axis=0)
 
-# graphing the summed columns
-plt.plot(arange(len(col_sum)),col_sum,color='xkcd:russet')
-plt.title('Summed brightness across x-axis')
-plt.savefig(colfilename)
+# Show and Save
+# Plot image using pyplot, gray color map
+plt.imshow(pixels, cmap="gray")
 plt.show()
 
 # save cropped image
 plt.imsave(f'{date}_{saveName}_Cropped_Picture.jpg', mid_pixels, cmap = 'gray')
+
+# graphing the summed columns
+plt.plot(arange(len(col_sum)),col_sum,color='xkcd:russet')
+plt.title(f'{saveName} brightness across x-axis')
+plt.savefig(colfilename) # save the plot
+plt.show() # then show it
 
 print('done')
 
